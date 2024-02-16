@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
 
     const axios = require('axios');
@@ -34,7 +36,7 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
         console.log("-------------------------------------------------------------");
         const games = response.data.results;
         let i = 0;
-        games.forEach(game => {
+        for (const game of games) {
             i++;
             console.log("        + Added Game " + i + "/" + LIMIT + " -> GUID : " + game.guid + "  NAME : '" + game.name + "'");
             db.query("INSERT INTO game (id_GiantBomb, guid, name, aliases, api_detail_url, date_added, date_last_updated, deck, description, expected_release_day, expected_release_month, expected_release_quarter, expected_release_year, image, image_tags, number_of_user_reviews, original_game_rating, original_release_date, platforms, site_detail_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
@@ -60,7 +62,10 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
                 game.site_detail_url,
 
             ]);
-        });
+
+            await updateGameJson(game);
+
+        }
 
         console.log("-------------------------------------------------------------");
         if (i == LIMIT) {
@@ -70,9 +75,6 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
         }
 
 
-        const jsonData = JSON.stringify(response.data, null, 2);
-        fs.writeFileSync('result.json', jsonData);
-
         // res.json(response.data);
 
         messageReturn = {
@@ -81,6 +83,8 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
         };
 
     } catch (error) {
+
+        // console.log(error)
 
         messageReturn = {
             status:"ERR",
@@ -104,6 +108,43 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
     }
 
 
+
+}
+
+async function getGamesJsonFunct(callback){
+
+    fs.readFile('games.json', 'utf8', (err, data) => {
+        if (err) {
+            console.error('[ERR] De lecture du fichier JSON de games');
+        }
+
+        try {
+            const jsonData = JSON.parse(data);
+
+            callback(jsonData);
+
+        } catch (parseError) {
+            console.error('[ERR] De parsing du fichier JSON de games');
+        }
+    });
+
+}
+function getGamesJson() {
+    return new Promise(resolve => {
+        getGamesJsonFunct(resolve);
+    });
+}
+
+async function updateGameJson(game) {
+
+    const gameJson = await getGamesJson();
+
+    // console.log(gameJson)
+    gameJson.games.push(game);
+    // console.log(gameJson)
+
+    const gameJsonEdit = JSON.stringify(gameJson, null, 2);
+    fs.writeFileSync('games.json', gameJsonEdit);
 
 }
 

@@ -1,5 +1,5 @@
 
-let API_CLEF = "4970ac3cef363f3fef4d940936603497b81ebc3f";
+let API_CLEF = "";
 let FORMAT = "json";
 let LIMIT = "100";
 let OFFSET = 100;
@@ -34,8 +34,8 @@ app.listen(port, (req, res) => {
     let data2 = {};
     data2['games'] = [];
     const gameReset = JSON.stringify(data2, null, 2);
-    console.log(`[GOOD] Reset du fichier games.json`);
-    fs.writeFileSync('games.json', gameReset);
+    console.log(`[GOOD] Reset du fichier plateforms.json`);
+    fs.writeFileSync('plateforms.json', gameReset);
     console.log("    ");
 
     runLoop(res);

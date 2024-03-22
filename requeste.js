@@ -23,7 +23,7 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
     });
 
     try {
-        const response = await axios.get('https://www.giantbomb.com/api/games/', {
+        const response = await axios.get('https://www.giantbomb.com/api/platforms/', {
             params: {
                 api_key: API_CLEF,
                 format: FORMAT,
@@ -34,38 +34,39 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
 
         console.log("[GOOD] Connexion start : " + OFFSET + " Limite : " + LIMIT);
         console.log("-------------------------------------------------------------");
-        const games = response.data.results;
-        let i = 0;
-        for (const game of games) {
-            i++;
-            console.log("        + Added Game " + i + "/" + LIMIT + " -> GUID : " + game.guid + "  NAME : '" + game.name + "'");
-            db.query("INSERT INTO game (id_GiantBomb, guid, name, aliases, api_detail_url, date_added, date_last_updated, deck, description, expected_release_day, expected_release_month, expected_release_quarter, expected_release_year, image, image_tags, number_of_user_reviews, original_game_rating, original_release_date, platforms, site_detail_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-                game.id,
-                game.guid,
-                game.name,
-                game.aliases,
-                game.api_detail_url,
-                game.date_added,
-                game.date_last_updated,
-                game.deck,
-                game.description,
-                game.expected_release_day,
-                game.expected_release_month,
-                game.expected_release_quarter,
-                game.expected_release_year,
-                JSON.stringify(game.image),
-                JSON.stringify(game.image_tags),
-                game.number_of_user_reviews,
-                JSON.stringify(game.original_game_rating),
-                game.original_release_date,
-                JSON.stringify(game.platforms),
-                game.site_detail_url,
-
-            ]);
-
-            await updateGameJson(game);
-
-        }
+        console.log(response.data.result)
+        // const games = response.data.results;
+        // let i = 0;
+        // for (const game of games) {
+        //     i++;
+        //     console.log("        + Added Game " + i + "/" + LIMIT + " -> GUID : " + game.guid + "  NAME : '" + game.name + "'");
+        //     db.query("INSERT INTO game (id_GiantBomb, guid, name, aliases, api_detail_url, date_added, date_last_updated, deck, description, expected_release_day, expected_release_month, expected_release_quarter, expected_release_year, image, image_tags, number_of_user_reviews, original_game_rating, original_release_date, platforms, site_detail_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+        //         game.id,
+        //         game.guid,
+        //         game.name,
+        //         game.aliases,
+        //         game.api_detail_url,
+        //         game.date_added,
+        //         game.date_last_updated,
+        //         game.deck,
+        //         game.description,
+        //         game.expected_release_day,
+        //         game.expected_release_month,
+        //         game.expected_release_quarter,
+        //         game.expected_release_year,
+        //         JSON.stringify(game.image),
+        //         JSON.stringify(game.image_tags),
+        //         game.number_of_user_reviews,
+        //         JSON.stringify(game.original_game_rating),
+        //         game.original_release_date,
+        //         JSON.stringify(game.platforms),
+        //         game.site_detail_url,
+        //
+        //     ]);
+        //
+        //     // await updateGameJson(game);
+        //
+        // }
 
         console.log("-------------------------------------------------------------");
         if (i == LIMIT) {

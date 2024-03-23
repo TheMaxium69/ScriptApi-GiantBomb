@@ -1,9 +1,9 @@
 
-let API_CLEF = "";
+let API_CLEF = "4970ac3cef363f3fef4d940936603497b81ebc3f";
 let FORMAT = "json";
 let LIMIT = "100";
 let OFFSET = 100;
-let NBBOUCLE = 100;
+let NBBOUCLE = 2;
 
 // *********************************************
 
@@ -21,7 +21,7 @@ app.listen(port, (req, res) => {
 
     console.log("    ");
     console.log("    ");
-    console.log("Nombre de boucle demandé : " + NBBOUCLE + " Sois un nombre de jeux de : " + NBBOUCLE*100);
+    console.log("Nombre de boucle demandé : " + NBBOUCLE + " Sois un nombre de plateforms de : " + NBBOUCLE*100);
     console.log(`[GOOD] Reset du fichier latest.log`);
     fs.writeFileSync('latest.log', "");
 
@@ -32,10 +32,10 @@ app.listen(port, (req, res) => {
     fs.writeFileSync('control.json', controlReset);
 
     let data2 = {};
-    data2['games'] = [];
-    const gameReset = JSON.stringify(data2, null, 2);
+    data2['plateforms'] = [];
+    const plateformReset = JSON.stringify(data2, null, 2);
     console.log(`[GOOD] Reset du fichier plateforms.json`);
-    fs.writeFileSync('plateforms.json', gameReset);
+    fs.writeFileSync('plateforms.json', plateformReset);
     console.log("    ");
 
     runLoop(res);
@@ -75,7 +75,7 @@ async function runLoop(res) {
     }
 
     console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-    console.log("Verification de la récupération de tout les jeux");
+    console.log("Verification de la récupération de toutes les plateforms");
     let perfect = "NON";
     let palierErr = "NON";
     let j = 0;
@@ -112,7 +112,7 @@ async function runLoop(res) {
             console.log("    ");
             console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
             console.log("    ");
-            console.log('[GOOD] Tout les jeux on été vérifier');
+            console.log('[GOOD] Tout les plateforms on été vérifier');
             perfect = "OUI";
         } else {
 

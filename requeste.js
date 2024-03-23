@@ -34,45 +34,41 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
 
         console.log("[GOOD] Connexion start : " + OFFSET + " Limite : " + LIMIT);
         console.log("-------------------------------------------------------------");
-        console.log(response.data.result)
-        // const games = response.data.results;
-        // let i = 0;
-        // for (const game of games) {
-        //     i++;
-        //     console.log("        + Added Game " + i + "/" + LIMIT + " -> GUID : " + game.guid + "  NAME : '" + game.name + "'");
-        //     db.query("INSERT INTO game (id_GiantBomb, guid, name, aliases, api_detail_url, date_added, date_last_updated, deck, description, expected_release_day, expected_release_month, expected_release_quarter, expected_release_year, image, image_tags, number_of_user_reviews, original_game_rating, original_release_date, platforms, site_detail_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-        //         game.id,
-        //         game.guid,
-        //         game.name,
-        //         game.aliases,
-        //         game.api_detail_url,
-        //         game.date_added,
-        //         game.date_last_updated,
-        //         game.deck,
-        //         game.description,
-        //         game.expected_release_day,
-        //         game.expected_release_month,
-        //         game.expected_release_quarter,
-        //         game.expected_release_year,
-        //         JSON.stringify(game.image),
-        //         JSON.stringify(game.image_tags),
-        //         game.number_of_user_reviews,
-        //         JSON.stringify(game.original_game_rating),
-        //         game.original_release_date,
-        //         JSON.stringify(game.platforms),
-        //         game.site_detail_url,
-        //
-        //     ]);
-        //
-        //     // await updateGameJson(game);
-        //
-        // }
+        const plateforms = response.data.results;
+        let i = 0;
+        for (const plateform of plateforms) {
+            i++;
+            console.log("        + Added Plateform " + i + "/" + LIMIT + " -> GUID : " + plateform.guid + "  NAME : '" + plateform.name + "'");
+            db.query("INSERT INTO plateforms (id_giant_bomb, guid, name, aliases, api_detail_url, abbreviation, company, date_added, date_last_updated, deck, description, image, image_tags, install_base, online_support, original_price, release_date, site_detail_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+                plateform.id,
+                plateform.guid,
+                plateform.name,
+                plateform.aliases,
+                plateform.api_detail_url,
+                plateform.abbreviation,
+                JSON.stringify(plateform.company),
+                plateform.date_added,
+                plateform.date_last_updated,
+                plateform.deck,
+                plateform.description,
+                JSON.stringify(plateform.image),
+                JSON.stringify(plateform.image_tags),
+                plateform.install_base,
+                plateform.online_support,
+                plateform.original_price,
+                plateform.release_date,
+                plateform.site_detail_url,
+            ]);
+
+            await updateGameJson(plateform);
+
+        }
 
         console.log("-------------------------------------------------------------");
         if (i == LIMIT) {
-            console.log("[GOOD] Added Game = " + i + " sur " + LIMIT + " game demandé");
+            console.log("[GOOD] Added plateform = " + i + " sur " + LIMIT + " plateform demandé");
         } else {
-            console.log("[ERR] Added Game = " + i + " sur " + LIMIT + " game demandé");
+            console.log("[ERR] Added plateform = " + i + " sur " + LIMIT + " plateform demandé");
         }
 
 
@@ -114,9 +110,9 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
 
 async function getGamesJsonFunct(callback){
 
-    fs.readFile('games.json', 'utf8', (err, data) => {
+    fs.readFile('plateforms.json', 'utf8', (err, data) => {
         if (err) {
-            console.error('[ERR] De lecture du fichier JSON de games');
+            console.error('[ERR] De lecture du fichier JSON de plateforms');
         }
 
         try {
@@ -125,7 +121,7 @@ async function getGamesJsonFunct(callback){
             callback(jsonData);
 
         } catch (parseError) {
-            console.error('[ERR] De parsing du fichier JSON de games');
+            console.error('[ERR] De parsing du fichier JSON de plateforms');
         }
     });
 
@@ -141,11 +137,11 @@ async function updateGameJson(game) {
     const gameJson = await getGamesJson();
 
     // console.log(gameJson)
-    gameJson.games.push(game);
+    gameJson.plateforms.push(game);
     // console.log(gameJson)
 
     const gameJsonEdit = JSON.stringify(gameJson, null, 2);
-    fs.writeFileSync('games.json', gameJsonEdit);
+    fs.writeFileSync('plateforms.json', gameJsonEdit);
 
 }
 

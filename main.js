@@ -2,7 +2,7 @@
 let API_CLEF = "4970ac3cef363f3fef4d940936603497b81ebc3f";
 let FORMAT = "json";
 let LIMIT = "100";
-let OFFSET = 100;
+let START_OFFSET = 70000;
 let NBBOUCLE = 100;
 
 // *********************************************
@@ -43,7 +43,7 @@ app.listen(port, (req, res) => {
 });
 
 async function runLoop(res) {
-    let OFFSET_boucle = 0;
+    // let OFFSET_boucle = 0;
     for (let i = 0; i < NBBOUCLE; i++) {
         console.log("*************************************");
         console.log("[START] Boucle numéro : " + (i + 1) + " (" + i * 100 + ")");
@@ -130,7 +130,7 @@ async function runLoop(res) {
 
 function makeRequest(i, res) {
     return new Promise(resolve => {
-        let OFFSET_boucle = i * 100;
+        let OFFSET_boucle = (i * 100) + START_OFFSET;
         request(API_CLEF, FORMAT, LIMIT, OFFSET_boucle, res, resolve);
     });
 }

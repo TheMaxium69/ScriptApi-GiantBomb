@@ -23,7 +23,7 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
     });
 
     try {
-        const response = await axios.get('https://www.giantbomb.com/api/platforms/', {
+        const response = await axios.get('https://www.giantbomb.com/api/companies/', {
             params: {
                 api_key: API_CLEF,
                 format: FORMAT,
@@ -34,41 +34,44 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
 
         console.log("[GOOD] Connexion start : " + OFFSET + " Limite : " + LIMIT);
         console.log("-------------------------------------------------------------");
-        const plateforms = response.data.results;
+        const companies = response.data.results;
         let i = 0;
-        for (const plateform of plateforms) {
+        for (const company of companies) {
             i++;
-            console.log("        + Added Plateform " + i + "/" + LIMIT + " -> GUID : " + plateform.guid + "  NAME : '" + plateform.name + "'");
-            db.query("INSERT INTO plateforms (id_giant_bomb, guid, name, aliases, api_detail_url, abbreviation, company, date_added, date_last_updated, deck, description, image, image_tags, install_base, online_support, original_price, release_date, site_detail_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-                plateform.id,
-                plateform.guid,
-                plateform.name,
-                plateform.aliases,
-                plateform.api_detail_url,
-                plateform.abbreviation,
-                JSON.stringify(plateform.company),
-                plateform.date_added,
-                plateform.date_last_updated,
-                plateform.deck,
-                plateform.description,
-                JSON.stringify(plateform.image),
-                JSON.stringify(plateform.image_tags),
-                plateform.install_base,
-                plateform.online_support,
-                plateform.original_price,
-                plateform.release_date,
-                plateform.site_detail_url,
+            console.log("        + Added Company " + i + "/" + LIMIT + " -> GUID : " + company.guid + "  NAME : '" + company.name + "'");
+
+            db.query("INSERT INTO company (id_giant_bomb, guid, name, aliases, api_detail_url, abbreviation, date_added, date_founded, date_last_updated, deck, description, image, image_tags, location_address, location_city, location_country, location_state, phone, site_detail_url, website) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+                company.id,
+                company.guid,
+                company.name,
+                company.aliases,
+                company.api_detail_url,
+                company.abbreviation,
+                company.date_added,
+                company.date_founded,
+                company.date_last_updated,
+                company.deck,
+                company.description,
+                JSON.stringify(company.image),
+                JSON.stringify(company.image_tags),
+                company.location_address,
+                company.location_city,
+                company.location_country,
+                company.location_state,
+                company.phone,
+                company.site_detail_url,
+                company.website
             ]);
 
-            await updateGameJson(plateform);
+            await updateGameJson(company);
 
         }
 
         console.log("-------------------------------------------------------------");
         if (i == LIMIT) {
-            console.log("[GOOD] Added plateform = " + i + " sur " + LIMIT + " plateform demandé");
+            console.log("[GOOD] Added Company = " + i + " sur " + LIMIT + " Company demandé");
         } else {
-            console.log("[ERR] Added plateform = " + i + " sur " + LIMIT + " plateform demandé");
+            console.log("[ERR] Added Company = " + i + " sur " + LIMIT + " Company demandé");
         }
 
 
@@ -110,9 +113,9 @@ async function request(API_CLEF, FORMAT, LIMIT, OFFSET, res, callback) {
 
 async function getGamesJsonFunct(callback){
 
-    fs.readFile('plateforms.json', 'utf8', (err, data) => {
+    fs.readFile('company.json', 'utf8', (err, data) => {
         if (err) {
-            console.error('[ERR] De lecture du fichier JSON de plateforms');
+            console.error('[ERR] De lecture du fichier JSON de companies');
         }
 
         try {
@@ -121,7 +124,7 @@ async function getGamesJsonFunct(callback){
             callback(jsonData);
 
         } catch (parseError) {
-            console.error('[ERR] De parsing du fichier JSON de plateforms');
+            console.error('[ERR] De parsing du fichier JSON de companies');
         }
     });
 
@@ -137,11 +140,11 @@ async function updateGameJson(game) {
     const gameJson = await getGamesJson();
 
     // console.log(gameJson)
-    gameJson.plateforms.push(game);
+    gameJson.company.push(game);
     // console.log(gameJson)
 
     const gameJsonEdit = JSON.stringify(gameJson, null, 2);
-    fs.writeFileSync('plateforms.json', gameJsonEdit);
+    fs.writeFileSync('company.json', gameJsonEdit);
 
 }
 

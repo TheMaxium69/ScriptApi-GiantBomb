@@ -2,7 +2,7 @@
 let API_CLEF = "4970ac3cef363f3fef4d940936603497b81ebc3f";
 let FORMAT = "json";
 let LIMIT = "100";
-let START_OFFSET = 70000;
+let START_OFFSET = 80000;
 let NBBOUCLE = 100;
 
 // *********************************************

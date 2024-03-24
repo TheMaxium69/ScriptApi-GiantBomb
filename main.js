@@ -2,7 +2,7 @@
 let API_CLEF = "4970ac3cef363f3fef4d940936603497b81ebc3f";
 let FORMAT = "json";
 let LIMIT = "100";
-let OFFSET = 100;
+let START_OFFSET = 20000;
 let NBBOUCLE = 100;
 
 // *********************************************
@@ -130,7 +130,7 @@ async function runLoop(res) {
 
 function makeRequest(i, res) {
     return new Promise(resolve => {
-        let OFFSET_boucle = i * 100;
+        let OFFSET_boucle = (i * 100) + START_OFFSET;
         request(API_CLEF, FORMAT, LIMIT, OFFSET_boucle, res, resolve);
     });
 }

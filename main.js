@@ -1,15 +1,16 @@
 
-let API_CLEF = "4970ac3cef363f3fef4d940936603497b81ebc3f";
+let API_CLEF = "";
 let FORMAT = "json";
-let LIMIT = "100";
-let START_OFFSET = 80000;
+let START_OFFSET = 682; // 0 = premier 1 = deuxième
 let NBBOUCLE = 100;
 
 // *********************************************
 
 const express = require("express");
 const request = require("./requeste");
+const game = require("./game");
 const fs = require('fs');
+const {get} = require("axios");
 const app = express();
 const port = 3000;
 
@@ -21,7 +22,7 @@ app.listen(port, (req, res) => {
 
     console.log("    ");
     console.log("    ");
-    console.log("Nombre de boucle demandé : " + NBBOUCLE + " Sois un nombre de jeux de : " + NBBOUCLE*100);
+    console.log("Nombre de boucle demandé : " + NBBOUCLE + " Sois un nombre de jeux de : " + NBBOUCLE + " à editer");
     console.log(`[GOOD] Reset du fichier latest.log`);
     fs.writeFileSync('latest.log', "");
 
@@ -31,11 +32,11 @@ app.listen(port, (req, res) => {
     console.log(`[GOOD] Reset du fichier control.json`);
     fs.writeFileSync('control.json', controlReset);
 
-    let data2 = {};
-    data2['games'] = [];
-    const gameReset = JSON.stringify(data2, null, 2);
-    console.log(`[GOOD] Reset du fichier games.json`);
-    fs.writeFileSync('games.json', gameReset);
+    // let data2 = {};
+    // data2['games'] = [];
+    // const gameReset = JSON.stringify(data2, null, 2);
+    // console.log(`[GOOD] Reset du fichier games.json`);
+    // fs.writeFileSync('games.json', gameReset);
     console.log("    ");
 
     runLoop(res);
@@ -46,36 +47,51 @@ async function runLoop(res) {
     // let OFFSET_boucle = 0;
     for (let i = 0; i < NBBOUCLE; i++) {
         console.log("*************************************");
-        console.log("[START] Boucle numéro : " + (i + 1) + " (" + i * 100 + ")");
+        console.log("[START] Boucle numéro : " + (i + 1));
         console.log("*************************************");
         console.log("    ");
 
-        const result = await makeRequest(i, res);
-        // const result = {
-        //     status:"ERR",
-        //     message:"Je suis un exemple"
-        // };
+
+        let getResult = await getGameRequest(i+1, res);
+
+        if (!getResult.game){
+            let k = 0;
+            console.log("  ");
+            console.log("   + 4s avant la prochaine requete sql");
+            setTimeout(async () => {
+                console.log("   - fin des 4 secondes");
+                do {
+                    k++;
+                    console.log("[ERR] SQL is Down - Try number : ", k);
+                    getResult = await getGameRequest(i+1, res);
+                } while (!getResult.game);
+            }, 4000);
+        }
+
+        const result = await makeRequest(getResult.game, res);
+
 
         console.log("    ");
         console.log("*************************************");
-        console.log(" [" + result.status + "] Boucle numéro : " + (i + 1) + " (" + i * 100 + ")");
+        console.log(" [" + result.status + "] Boucle numéro : " + (i + 1));
+        console.log("   - guid : " + getResult.game.guid);
+        console.log("   - game : " + getResult.game.name);
         console.log("   - messsage : " + result.message);
         console.log("*************************************");
         console.log("    ");
         console.log("    ");
 
-
         console.log('[GOOD] Modification du fichier log');
-        fs.appendFileSync('latest.log', (i+1) + ": ["+ result.status +"] Etape n\°"+ (i+1) +" (" + i * 100 + ") : " + result.message+ '\n');
+        fs.appendFileSync('latest.log', (i+1) + ": ["+ result.status +"] Game = "+getResult.game.guid+" - "+getResult.game.name+" | Etape n\°"+ (i+1) +" : " + result.message+ '\n');
 
-        await updateControleJson(i, result);
+        await updateControleJson(i, result, getResult.game);
         console.log("    ");
         console.log("    ");
 
     }
 
     console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-    console.log("Verification de la récupération de tout les jeux");
+    console.log("Verification de la modifications de tout les jeux");
     let perfect = "NON";
     let palierErr = "NON";
     let j = 0;
@@ -96,10 +112,18 @@ async function runLoop(res) {
             if (control[key].status == "ERR"){
                 palierErr = "OUI";
                 console.log("           + " + control[key].nbBoucle + "/" + Object.keys(control).length + " = ERR");
-                console.log("[ERR] La boucle n\°"+ control[key].nbBoucle + " (" + control[key].palier + ") doit être refaite");
+                console.log("[ERR] La boucle n\°"+ control[key].nbBoucle + " (" + control[key].guid + " - " + control[key].name +") doit être refaite");
                 console.log("    ");
-                const resultReVerif = await reRequestPromise(+key,res);
-                await updateControleJson(+key, resultReVerif);
+
+                console.log("*************************************");
+                console.log("[START] Boucle numéro : " + (+key + 1));
+                console.log("*************************************");
+                console.log("    ");
+
+
+                const getResult = await getGameRequest(+key+1, res);
+                const resultReVerif = await reRequestPromise(+key, getResult,res);
+                await updateControleJson(+key, resultReVerif,getResult.game);
                 console.log("    ");
                 console.log("    ");
             } else {
@@ -127,13 +151,19 @@ async function runLoop(res) {
         process.exit();
     }, 6000);
 }
-
-function makeRequest(i, res) {
+function getGameRequest(i, res) {
     return new Promise(resolve => {
-        let OFFSET_boucle = (i * 100) + START_OFFSET;
-        request(API_CLEF, FORMAT, LIMIT, OFFSET_boucle, res, resolve);
+        let OFFSET_boucle = i + START_OFFSET;
+        game(OFFSET_boucle, res, resolve);
     });
 }
+
+function makeRequest(game, res) {
+    return new Promise(resolve => {
+        request(API_CLEF, FORMAT, game, res, resolve);
+    });
+}
+
 
 async function getControlJsonFunct(callback){
 
@@ -161,12 +191,15 @@ function getControlJson() {
     });
 }
 
-async function updateControleJson(id, message) {
+async function updateControleJson(id, message, game) {
     console.log('[GOOD] Modification du fichier JSON de controle');
 
     const controlJson = await getControlJson();
 
-    message['palier'] = id * 100;
+    message['id'] = game.id;
+    message['id_giant_bomb'] = game.id_giant_bomb;
+    message['guid'] = game.guid;
+    message['name'] = game.name;
     message['nbBoucle'] = id + 1;
     controlJson.control[id] = message;
     // console.log(controlJson)
@@ -176,35 +209,34 @@ async function updateControleJson(id, message) {
 
 }
 
-async function reRequest(i, res , callback) {
-    console.log("*************************************");
-    console.log("[START] Boucle numéro : " + (i + 1) + " (" + i * 100 + ")");
-    console.log("*************************************");
-    console.log("    ");
+async function reRequest(i, getResult, res , callback) {
 
-    const result = await makeRequest(i, res);
-    // const result = {
-    //     status: "ERR",
-    //     message: "Je suis un exemple"
-    // };
+
+    const result = await makeRequest(getResult.game, res);
+
 
     console.log("    ");
     console.log("*************************************");
-    console.log(" [" + result.status + "] Boucle numéro : " + (i + 1) + " (" + i * 100 + ")");
+    console.log(" [" + result.status + "] Boucle numéro : " + (i + 1));
+    console.log("   - guid : " + getResult.game.guid);
+    console.log("   - game : " + getResult.game.name);
     console.log("   - messsage : " + result.message);
     console.log("*************************************");
     console.log("    ");
     console.log("    ");
 
-
     console.log('[GOOD] Modification du fichier log');
-    fs.appendFileSync('latest.log', (i + 1) + ": [" + result.status + "] Verif Etape n\°" + (i + 1) + " (" + i * 100 + ") : " + result.message + '\n');
+    fs.appendFileSync('latest.log', (i+1) + ": ["+ result.status +"] Game = "+getResult.game.guid+" - "+getResult.game.name+" | Etape n\°"+ (i+1) +" : " + result.message+ '\n');
+
+    // await updateControleJson(i, result, getResult.game);
+    // console.log("    ");
+    // console.log("    ");
 
     callback(result);
 }
 
-function reRequestPromise(i, res) {
+function reRequestPromise(i, getResult, res) {
     return new Promise(resolve => {
-        reRequest(i, res, resolve);
+        reRequest(i, getResult, res, resolve);
     });
 }

@@ -1,7 +1,9 @@
 
-let API_CLEF = "";
+let API_CLEF = [
+
+];
 let FORMAT = "json";
-let START_OFFSET = 682; // 0 = premier 1 = deuxième
+let START_OFFSET = 1773 // 0 = premier 1 = deuxième
 let NBBOUCLE = 100;
 
 // *********************************************
@@ -55,17 +57,11 @@ async function runLoop(res) {
         let getResult = await getGameRequest(i+1, res);
 
         if (!getResult.game){
-            let k = 0;
-            console.log("  ");
-            console.log("   + 4s avant la prochaine requete sql");
-            setTimeout(async () => {
-                console.log("   - fin des 4 secondes");
-                do {
-                    k++;
-                    console.log("[ERR] SQL is Down - Try number : ", k);
-                    getResult = await getGameRequest(i+1, res);
-                } while (!getResult.game);
-            }, 4000);
+            getResult.game = {
+                guid: "err",
+                name: "err",
+                id: "err"
+            };
         }
 
         const result = await makeRequest(getResult.game, res);

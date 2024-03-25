@@ -30,6 +30,15 @@ async function request(API_CLEF, FORMAT, game, res, callback) {
         db.connect((err) => {
             if (err) {
                 console.error('Erreur de connexion à la base de données:', err);
+                // console.log('Erreur de connexion à la base de données:');
+
+                // messageReturn = {
+                //     status: "ERR",
+                //     message: "Erreur de connexion à la base de données"
+                // };
+                //
+                // callback(messageReturn)
+
             } else {
                 console.log('[GOOD] Connexion à la base de données MySQL réussie');
             }
@@ -38,19 +47,32 @@ async function request(API_CLEF, FORMAT, game, res, callback) {
         // console.log("game:",game);
         let url = "https://www.giantbomb.com/api/game/" + game.guid + "/"
 
-        try {
-            const response = await axios.get(url, {
-                params: {
-                    api_key: API_CLEF,
-                    format: FORMAT,
-                }
-            })
+        let iamErrApi = false;
+        let l = 0;
 
-            console.log("[GOOD] Connexion start : ");
-            console.log("           Game Request = " + game.guid + " | name = " + game.name);
-            console.log("-------------------------------------------------------------");
-            const gameRecup = response.data.results;
-            // console.log(gameRecup.name)
+
+        do {
+
+            try {
+
+                if (l > API_CLEF.length){
+                    console.log('[GOOD] Fermeture du Script');
+                    process.exit();
+                }
+
+                console.log('[START] Requete avec l\'API CLEF N°:'+l);
+                const response = await axios.get(url, {
+                    params: {
+                        api_key: API_CLEF[l],
+                        format: FORMAT,
+                    }
+                })
+
+                console.log("[GOOD] Connexion start : ");
+                console.log("           Game Request = " + game.guid + " | name = " + game.name);
+                console.log("-------------------------------------------------------------");
+                const gameRecup = response.data.results;
+                // console.log(gameRecup.name)
 
                 db.query("UPDATE game SET franchises = ?, genres = ?, people = ?, publishers = ?, developers = ?, releases = ?, similar_games = ?, themes = ?, characters = ? WHERE id = ?", [
                     JSON.stringify(gameRecup.franchises),
@@ -68,34 +90,33 @@ async function request(API_CLEF, FORMAT, game, res, callback) {
                 // await updateGameJson(game);
 
 
-                console.log("[GOOD] Updated Game = " + game.guid + " | " + game.name );
+                console.log("[GOOD] Updated Game = " + game.guid + " | " + game.name);
 
-            console.log("-------------------------------------------------------------");
-            // if (i == LIMIT) {
-            //     console.log("[GOOD] Added Game = " + i + " sur " + LIMIT + " game demandé");
-            // } else {
-            //     console.log("[ERR] Added Game = " + i + " sur " + LIMIT + " game demandé");
-            // }
+                console.log("-------------------------------------------------------------");
+
+                messageReturn = {
+                    status: "GOOD",
+                    message: "Tout les données on bien été mise à jour"
+                };
 
 
-            // res.json(response.data);
+                iamErrApi = false;
 
-            messageReturn = {
-                status:"GOOD",
-                message:"Tout les données on bien été mise à jour"
-            };
+            } catch (error) {
 
-        } catch (error) {
+                // console.log(error)
+                console.log('[ERR] Ban avec l\'API CLEF N°:'+l);
 
-            // console.log(error)
+                messageReturn = {
+                    status: "ERR",
+                    message: "Erreur lors de la requête vers l\'API"
+                };
 
-            messageReturn = {
-                status:"ERR",
-                message:"Erreur lors de la requête vers l\'API"
-            };
+                iamErrApi = true;
 
-            // res.status(500).json({error: 'Erreur lors de la requête vers l\'API'});
-        }
+            }
+            l++
+        } while (iamErrApi);
 
 
 

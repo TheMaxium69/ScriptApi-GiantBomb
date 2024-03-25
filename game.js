@@ -14,7 +14,8 @@ async function game(OFFSET, res, callback) {
 
     db.connect((err) => {
         if (err) {
-            console.error('[ERR] Erreur de connexion à la base de données:', err);
+            console.log('[ERR] Erreur de connexion à la base de données');
+            // console.error('[ERR] Erreur de connexion à la base de données:', err);
 
             messageReturn = {
                 status:"ERR",

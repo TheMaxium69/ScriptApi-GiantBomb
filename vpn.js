@@ -1,11 +1,7 @@
 
 const express = require("express");
-const request = require("./requeste");
-const game = require("./game");
-const fs = require('fs');
-const {get} = require("axios");
 const app = express();
-const port = 3000;
+const port = 3001;
 
 app.use(express.json());
 

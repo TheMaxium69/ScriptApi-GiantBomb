@@ -1,5 +1,5 @@
 
-const Global_API_CLEF = require("token");
+const { ENV_API_CLEF } = require("token");
 const { ENV_PORT, ENV_FORMAT, ENV_START_OFFSET, ENV_LIMIT, ENV_NBBOUCLE} = require("env");
 const express = require("express");
 const request = require("./requeste");
@@ -8,7 +8,7 @@ const {get} = require("axios");
 const app = express();
 const port = ENV_PORT;
 
-let API_CLEF = Global_API_CLEF;
+let API_CLEF = ENV_API_CLEF;
 let FORMAT = ENV_FORMAT;
 let START_OFFSET = ENV_START_OFFSET
 let LIMIT = ENV_LIMIT;
